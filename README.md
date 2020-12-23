@@ -22,3 +22,9 @@ runtimedb.json - written to by the application
 ```
 {}
 ```
+
+## setup as service
+1. open powershell
+2. run: npm install -g qckwinsvc
+3. Ensure we can run scripts (you may want other settings, read up on this command): Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope LocalMachine
+4. run: qckwinsvc and follow instructions

@@ -17,6 +17,7 @@ client.once('ready', () => {
 });
 
 client.on('message', message => {
+    // Helper funcs for messages
     function logAndReply(msg){
         console.log(msg);
         message.channel.send(msg);
@@ -27,6 +28,50 @@ client.on('message', message => {
         message.channel.send(msg);
     }
 
+    // Handling of incoming attachments.
+    if (db.channels !== undefined && db.channels.length > 0 && db.channels.includes(message.channel.id) && message.attachments.size > 0)  {
+        for (let [key, messageAttachment] of message.attachments) {
+            // filter out json
+            var attachmentName = path.parse(messageAttachment.name);
+            if (attachmentName.ext !== ".json") {
+                errorAndReply("Could not parse posted file - not a JSON!")
+                return;
+            }
+
+            if (!attachmentName.name.includes(config.simresults.filesuffix)) {
+
+                // generate simresults json if this is a race results
+                var simresultsJson = {
+                    name: config.simresults.leaguename,
+                    results: [
+                        {
+                            "name": attachmentName.name,
+                            "log": [
+                                messageAttachment.url
+                            ]
+                        }
+                    ]
+                }
+                var serialized = JSON.stringify(simresultsJson);
+                var buffer = Buffer.from(serialized);
+                message.channel.send("", new discord.MessageAttachment(buffer, attachmentName.name + config.simresults.filesuffix + ".json"));
+                return;
+            } else {
+                
+                // generate URL to view the race on simresults if this is a simresults json.
+                var embed = new discord.MessageEmbed()
+                    .setTitle("A race has been completed!")
+                    .setDescription("Click the link to see the results on simresults.net")
+                    .setURL(config.simresults.apibaseurl + messageAttachment.url)
+                    .setThumbnail('https://simresults.net/media/img/logos/raceroom-racing-experience.png');
+
+                message.channel.send(embed);
+                return;
+            }
+        }
+    }
+
+    // Normal command handling
     if (!message.content.startsWith(config.discord.prefix) || message.author.bot) return;
     const args = message.content.slice(config.discord.prefix.length).trim().split(/ +/);
     const command = args.shift().toLowerCase();
@@ -68,6 +113,7 @@ client.login(config.discord.bot_token);
 
 console.log("Starting to monitor folder " + baseDir + config.path)
 const watcher = chokidar.watch(baseDir + config.path, {
+    //todo: ignore all non-json
     ignored: /(^|[\/\\])\../, // ignore dotfiles
     persistent: true,
     ignoreInitial: true,
@@ -78,13 +124,15 @@ watcher.on('add', path => {
         return;
     }
 
-    db.channels.forEach((item, index) => {
-        client.channels.fetch(item)
-            .then(channel => {
-                channel.send("", {
-                    files: [ path ]
+    if (db.channels !== undefined && db.channels.length > 0)  {
+        db.channels.forEach((item, index) => {
+            client.channels.fetch(item)
+                .then(channel => {
+                    channel.send("", {
+                        files: [ path ]
+                    })
                 })
-            })
-            .catch(console.error);
-    });
+                .catch(console.error);
+        });
+    }
 });

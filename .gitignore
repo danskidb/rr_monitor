@@ -1,4 +1,6 @@
 node_modules
+monitordir
+
 package-lock.json
 runtimedb.json
 config.json
