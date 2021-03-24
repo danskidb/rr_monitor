@@ -2,9 +2,12 @@
 Simple tool that posts RaceRoom Racing Experience Dedicated Server results to a discord page.
 
 Result browsing is made possible by https://simresults.net/
-The bot posts the results json of a race, plus an additional metadata json file for simresults. Discord files are publicly available so simresults can reach them.
 
-How an url is built up: https://simresults.net/remote?results= + https://cdn.discordapp.com/attachments/ + <uniquepath>.json
+The bot posts the results json of a race to discord, plus an additional metadata json file for simresults. Discord files are publicly available so simresults can reach them.
+
+How a url is built up: https://simresults.net/remote?results= + https://cdn.discordapp.com/attachments/ + <uniquepath>.json
+
+This bot does not parse the result! It only handles file uploading and link creation.
 
 ## Config Files
 Create the following files in the root dir:
